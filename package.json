@@ -1,0 +1,31 @@
+{
+  "name": "chocolatier",
+  "version": "0.0.0",
+  "description": "minimal reactive library",
+  "author": "Charbel Rami",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.umd.js",
+  "module": "./dist/index.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "prettier": "^2.6.2",
+    "vite": "^2.9.6"
+  },
+  "volta": {
+    "node": "17.9.0"
+  }
+}
