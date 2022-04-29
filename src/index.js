@@ -4,6 +4,7 @@ let reaction;
 export function createReaction(fn) {
   reaction = fn;
   reaction();
+  reaction = null;
 }
 
 export function createState(initialValue) {
@@ -13,7 +14,6 @@ export function createState(initialValue) {
       reactionMap.has(getState)
         ? reactionMap.get(getState).add(reaction)
         : reactionMap.set(getState, new Set([reaction]));
-      reaction = null;
     }
     return value;
   };
@@ -24,6 +24,42 @@ export function createState(initialValue) {
     }
   };
   return [getState, setState];
+}
+
+function render(element, children) {
+  children.forEach((child) => {
+    if (child === undefined) return;
+
+    if (["number", "string"].includes(typeof child)) {
+      const text = document.createTextNode(child);
+      return element.appendChild(text);
+    }
+
+    if (typeof child === "function") {
+      return createReaction(() => {
+        const result = child();
+
+        if (["number", "string"].includes(typeof result)) {
+          const text = document.createTextNode(result);
+          return element.replaceChildren(text);
+        }
+
+        if (Array.isArray(result)) {
+          const fragment = document.createDocumentFragment();
+          result.forEach((item) => {
+            fragment.appendChild(item);
+          });
+          return element.replaceChildren(fragment);
+        }
+
+        element.appendChild(result);
+      });
+    }
+
+    if (Array.isArray(child)) return render(element, child);
+
+    element.appendChild(child);
+  });
 }
 
 const supportedSvgTags = ["svg", "path"];
@@ -45,49 +81,7 @@ export function h(tag, props, ...children) {
       return element.setAttribute(key, value);
     });
 
-  if (children) {
-    children.forEach((child) => {
-      if (child === undefined) return;
-
-      if (["number", "string"].includes(typeof child)) {
-        const text = document.createTextNode(child);
-        return element.appendChild(text);
-      }
-
-      if (Array.isArray(child)) {
-        return child.forEach((item) => {
-          if (["number", "string"].includes(typeof item)) {
-            const text = document.createTextNode(item);
-            return element.appendChild(text);
-          }
-          element.appendChild(item);
-        });
-      }
-
-      if (typeof child === "function") {
-        return createReaction(() => {
-          const result = child();
-
-          if (["number", "string"].includes(typeof result)) {
-            const text = document.createTextNode(result);
-            return element.replaceChildren(text);
-          }
-
-          if (Array.isArray(result)) {
-            const fragment = document.createDocumentFragment();
-            result.forEach((item) => {
-              fragment.appendChild(item);
-            });
-            return element.replaceChildren(fragment);
-          }
-
-          element.appendChild(result);
-        });
-      }
-
-      element.appendChild(child);
-    });
-  }
+  render(element, children);
 
   return element;
 }
