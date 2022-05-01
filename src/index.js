@@ -45,11 +45,25 @@ function render(element, children) {
         }
 
         if (Array.isArray(result)) {
-          const fragment = document.createDocumentFragment();
-          result.forEach((item) => {
-            fragment.appendChild(item);
-          });
-          return element.replaceChildren(fragment);
+          const { children } = element;
+          for (let i = 0; i < children.length; i++) {
+            const prevItem = children[i];
+            if (!result.find((node) => node.id === prevItem.id))
+              element.removeChild(prevItem);
+          }
+          for (let i = 0; i < result.length; i++) {
+            const prevItem = children[i];
+            const item = result[i];
+            if (prevItem) {
+              if (item.id !== prevItem.id) {
+                element.insertBefore(item, prevItem);
+                element.removeChild(prevItem);
+              }
+            } else {
+              element.appendChild(item);
+            }
+          }
+          return;
         }
 
         element.appendChild(result);
@@ -64,6 +78,18 @@ function render(element, children) {
 
 const supportedSvgTags = ["svg", "path"];
 
+function setAttribute(element, key, value) {
+  if (key === "value") {
+    if (value === true) return (element.value = "");
+    return (element.value = value);
+  }
+  if (value || value === 0) {
+    if (value === true) return element.setAttribute(key, "");
+    return element.setAttribute(key, value);
+  }
+  return element.removeAttribute(key);
+}
+
 export function h(tag, props, ...children) {
   if (typeof tag === "function") return tag({ ...props, children });
 
@@ -77,8 +103,8 @@ export function h(tag, props, ...children) {
       if (key.startsWith("on"))
         return element.addEventListener(key.slice(2).toLowerCase(), value);
       if (typeof value === "function")
-        return createReaction(() => element.setAttribute(key, value()));
-      return element.setAttribute(key, value);
+        return createReaction(() => setAttribute(element, key, value()));
+      return setAttribute(element, key, value);
     });
 
   render(element, children);
