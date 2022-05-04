@@ -27,7 +27,7 @@ export function createState(initialValue) {
 }
 
 function render(element, children) {
-  children.forEach((child) => {
+  children.forEach((child, i) => {
     if (child === undefined) return;
 
     if (["number", "string"].includes(typeof child)) {
@@ -41,7 +41,9 @@ function render(element, children) {
 
         if (["number", "string"].includes(typeof result)) {
           const text = document.createTextNode(result);
-          return element.replaceChildren(text);
+          if (element.childNodes[i]?.nodeType === Node.TEXT_NODE)
+            return element.replaceChild(text, element.childNodes[i]);
+          return element.appendChild(text);
         }
 
         if (Array.isArray(result)) {
