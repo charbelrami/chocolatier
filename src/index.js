@@ -1,28 +1,28 @@
 const states = new WeakMap();
 
 export function createState(value) {
-  const key = Symbol();
-  states.set(key, {
+  const symbol = Symbol();
+  states.set(symbol, {
     value,
     dependents: new Set(),
   });
-  return key;
+  return symbol;
 }
 
-function getStateByKey(key) {
-  const state = states.get(key);
+function getStateBySymbol(symbol) {
+  const state = states.get(symbol);
   if (!state) {
-    throw new Error(`No state found for key: ${String(key)}`);
+    throw new Error(`No state found for symbol: ${String(symbol)}`);
   }
   return state;
 }
 
-export function getState(key) {
-  return getStateByKey(key).value;
+export function getState(symbol) {
+  return getStateBySymbol(symbol).value;
 }
 
-export function setState(key, value) {
-  const state = getStateByKey(key);
+export function setState(symbol, value) {
+  const state = getStateBySymbol(symbol);
   state.value = value;
   state.dependents.forEach((dependent) => dependent());
   return state.value;
@@ -41,14 +41,14 @@ export function createEffect(callback, symbols = []) {
   }
   const dependent = () => callback(...symbols.map(getState));
   symbols.forEach((symbol) => {
-    const state = getStateByKey(symbol);
+    const state = getStateBySymbol(symbol);
     if (!state.dependents.has(dependent)) {
       state.dependents.add(dependent);
     }
   });
   return () => {
     symbols.forEach((symbol) => {
-      const state = getStateByKey(symbol);
+      const state = getStateBySymbol(symbol);
       state.dependents.delete(dependent);
     });
   };
@@ -99,7 +99,7 @@ export const createText = (text, symbols) => {
     const node = document.createTextNode(text());
 
     symbols.forEach((symbol) => {
-      const { dependents } = getStateByKey(symbol);
+      const { dependents } = getStateBySymbol(symbol);
       const dependent = () => {
         const text_ = text();
         if (node.nodeValue !== text_) {
@@ -138,7 +138,7 @@ export const setProperty = (key, value, symbols) => (element) => {
     }
     element[key] = value();
     symbols.forEach((symbol) => {
-      const { dependents } = getStateByKey(symbol);
+      const { dependents } = getStateBySymbol(symbol);
       const dependent = () => {
         const value_ = value();
         if (element[key] !== value_) {
@@ -170,7 +170,7 @@ export const setAttribute = (key, value, symbols) => (element) => {
     }
     element.setAttribute(key, value());
     symbols.forEach((symbol) => {
-      const { dependents } = getStateByKey(symbol);
+      const { dependents } = getStateBySymbol(symbol);
       const dependent = () => {
         const value_ = value();
         if (element.getAttribute(key) !== value_) {
@@ -230,7 +230,7 @@ export const addChild = (child, symbols) => (element) => {
     element.appendChild(child_);
 
     symbols.forEach((symbol) => {
-      const { dependents } = getStateByKey(symbol);
+      const { dependents } = getStateBySymbol(symbol);
       let prevChild = child_;
 
       const dependent = () => {
@@ -302,7 +302,7 @@ export const addGuardedChild = (child, condition, symbols) => (element) => {
   };
 
   symbols.forEach((symbol) => {
-    const { dependents } = getStateByKey(symbol);
+    const { dependents } = getStateBySymbol(symbol);
     dependents.add(updateChild);
 
     element.addEventListener(
@@ -378,7 +378,7 @@ export const addKeyedChildren =
     };
 
     symbols.forEach((symbol) => {
-      const { dependents } = getStateByKey(symbol);
+      const { dependents } = getStateBySymbol(symbol);
       dependents.add(updateChildren);
 
       element.addEventListener(
