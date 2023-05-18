@@ -12,6 +12,7 @@ import {
   getState,
   onMount,
   onUnmount,
+  setAttribute,
   setProperty,
   setState,
 } from "../src";
@@ -26,6 +27,38 @@ const counter = createElement(
       "button",
       addEventListener("click", () => setState(count, getState(count) + 1)),
       addChild(createText(() => getState(count), [count]))
+    )
+  )
+);
+
+const rangeState = createState(0);
+
+const range = createElement(
+  "section",
+  addChild(createElement("h2", addChild(createText("Range")))),
+  addChild(
+    createElement(
+      "label",
+      setAttribute("for", "range-id"),
+      addChild(createText("Range"))
+    )
+  ),
+  addChild(
+    createElement(
+      "input",
+      setProperty("id", "range-id"),
+      setProperty("type", "range"),
+      setProperty("value", () => getState(rangeState), [rangeState]),
+      addEventListener("input", (e) =>
+        setState(rangeState, e.target.valueAsNumber)
+      )
+    )
+  ),
+  addChild(
+    createElement(
+      "output",
+      setAttribute("for", "range-id"),
+      addChild(createText(() => getState(rangeState), [rangeState]))
     )
   )
 );
@@ -60,7 +93,7 @@ const userPosts = createElement(
   addChild(
     createElement(
       "label",
-      setProperty("htmlFor", "users"),
+      setAttribute("for", "users"),
       addChild(createText("Select a user"))
     )
   ),
@@ -141,5 +174,6 @@ const elementLifecycle = createElement(
 
 const root = document.getElementById("root");
 root.appendChild(counter);
+root.appendChild(range);
 root.appendChild(userPosts);
 root.appendChild(elementLifecycle);
