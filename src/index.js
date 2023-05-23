@@ -1,4 +1,5 @@
-const states = new WeakMap();
+// const states = new WeakMap(); // https://github.com/tc39/proposal-symbols-as-weakmap-keys
+const states = new Map();
 
 export function createState(value) {
   const symbol = Symbol();
