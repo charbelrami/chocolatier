@@ -1,0 +1,13 @@
+{
+  "include": ["src/index.js"],
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "target": "ESNext",
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": true,
+    "noEmitOnError": true,
+    "outDir": "dist"
+  }
+}

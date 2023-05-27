@@ -1,6 +1,23 @@
-// const states = new WeakMap(); // https://github.com/tc39/proposal-symbols-as-weakmap-keys
+/**
+ * @typedef {any} StateValue
+ */
+
+/**
+ * @typedef {{ value: StateValue, dependents: Set<() => void> }} StateObject
+ */
+
+/**
+ * @typedef {Symbol} StateSymbol
+ */
+
+/** @type {Map<StateSymbol, StateObject>} */
 const states = new Map();
 
+/**
+ *
+ * @param {StateValue=} value
+ * @returns {StateSymbol}
+ */
 export function createState(value) {
   const symbol = Symbol();
   states.set(symbol, {
@@ -10,7 +27,12 @@ export function createState(value) {
   return symbol;
 }
 
-function getStateBySymbol(symbol) {
+/**
+ * @private
+ * @param {StateSymbol} symbol
+ * @returns {StateObject}
+ */
+function getStateObjectBySymbol(symbol) {
   const state = states.get(symbol);
   if (!state) {
     throw new Error(`No state found for symbol: ${String(symbol)}`);
@@ -18,47 +40,62 @@ function getStateBySymbol(symbol) {
   return state;
 }
 
+/**
+ *
+ * @param {StateSymbol} symbol
+ * @returns {StateValue}
+ */
 export function getState(symbol) {
-  return getStateBySymbol(symbol).value;
+  return getStateObjectBySymbol(symbol).value;
 }
 
+/**
+ *
+ * @param {StateSymbol} symbol
+ * @param {StateValue} value
+ * @returns {StateValue}
+ */
 export function setState(symbol, value) {
-  const state = getStateBySymbol(symbol);
+  const state = getStateObjectBySymbol(symbol);
   state.value = value;
   state.dependents.forEach((dependent) => dependent());
   return state.value;
 }
 
+/**
+ *
+ * @param {(...states: StateValue[]) => void} callback callback
+ * @param {StateSymbol[]} [symbols=[]]
+ * @returns  {() => void}
+ */
 export function createEffect(callback, symbols = []) {
-  if (typeof callback !== "function") {
-    throw new Error(`'callback' must be a function.`);
-  }
-  if (!Array.isArray(symbols)) {
-    throw new Error(`'symbols' must be an array.`);
-  }
   if (!symbols.length) {
     callback();
     return () => {};
   }
   const dependent = () => callback(...symbols.map(getState));
   symbols.forEach((symbol) => {
-    const state = getStateBySymbol(symbol);
+    const state = getStateObjectBySymbol(symbol);
     if (!state.dependents.has(dependent)) {
       state.dependents.add(dependent);
     }
   });
   return () => {
     symbols.forEach((symbol) => {
-      const state = getStateBySymbol(symbol);
+      const state = getStateObjectBySymbol(symbol);
       state.dependents.delete(dependent);
     });
   };
 }
 
+/**
+ *
+ * @param {(...states: StateValue[]) => void} callback
+ * @param {(...states: StateValue[]) => boolean} condition
+ * @param {StateSymbol[]} [symbols=[]]
+ * @returns {() => void}
+ */
 export function createGuardedEffect(callback, condition, symbols = []) {
-  if (typeof condition !== "function") {
-    throw new Error(`'condition' must be a function.`);
-  }
   let prevState;
   return createEffect(() => {
     const currentState = symbols.map(getState);
@@ -71,40 +108,71 @@ export function createGuardedEffect(callback, condition, symbols = []) {
   }, symbols);
 }
 
+/**
+ *
+ * @private
+ * @param {Element} element
+ * @returns {Element}
+ */
 const dispatchChildrenUnmountEvents = (element) => {
   element.addEventListener("unmount", () => {
     element.childNodes.forEach((child) => {
+      // @ts-ignore
       dispatchUnmountEvent(child);
     });
   });
   return element;
 };
 
-export const createElement = (type, ...modifiers) =>
+/**
+ *
+ * @param {string} elementType
+ * @param {...((element: Element) => Element)} modifiers
+ * @returns {Element}
+ */
+export const createElement = (elementType, ...modifiers) =>
   modifiers.reduce(
     (element, modifier) => modifier(element),
-    dispatchChildrenUnmountEvents(document.createElement(type))
+    dispatchChildrenUnmountEvents(document.createElement(elementType))
   );
 
-export const createSvgElement = (type, ...modifiers) =>
+/**
+ *
+ * @param {string} elementType
+ * @param {...((element: SVGElement) => SVGElement)} modifiers
+ * @returns {SVGElement}
+ */
+export const createSvgElement = (elementType, ...modifiers) =>
   modifiers.reduce(
     (element, modifier) => modifier(element),
-    document.createElementNS("http://www.w3.org/2000/svg", type)
+    document.createElementNS("http://www.w3.org/2000/svg", elementType)
   );
 
+/**
+ *
+ * @param {string | number | (() => string) | (() => number)} text
+ * @param {StateSymbol[]} [symbols]
+ * @returns {Text}
+ */
 export const createText = (text, symbols) => {
   if (symbols) {
     if (typeof text !== "function") {
-      throw new Error(`'text' must be a function when 'symbols' are provided.`);
+      throw new Error(
+        `'text' must be a function when 'symbols' are provided. Received ${typeof text}.`
+      );
     }
-    const node = document.createTextNode(text());
+
+    const text_ = text();
+    const node = document.createTextNode(
+      typeof text_ === "number" ? String(text_) : text_
+    );
 
     symbols.forEach((symbol) => {
-      const { dependents } = getStateBySymbol(symbol);
+      const { dependents } = getStateObjectBySymbol(symbol);
       const dependent = () => {
         const text_ = text();
         if (node.nodeValue !== text_) {
-          node.nodeValue = text_;
+          node.nodeValue = typeof text_ === "number" ? String(text_) : text_;
         }
       };
 
@@ -117,29 +185,41 @@ export const createText = (text, symbols) => {
 
     return node;
   } else {
-    if (typeof text === "function") {
-      throw new Error("'symbols' must be provided when 'text' is a function.");
-    }
-    return document.createTextNode(text);
+    const text_ = typeof text === "function" ? text() : text;
+    return document.createTextNode(
+      typeof text_ === "number" ? String(text_) : text_
+    );
   }
 };
 
+/**
+ *
+ * @param {(ref: WeakRef<Element>) => void} callback
+ * @returns {(element: Element) => Element}
+ */
 export const createRef = (callback) => (element) => {
   const ref = new WeakRef(element);
   callback(ref);
   return element;
 };
 
+/**
+ *
+ * @param {string} key
+ * @param {string | (() => string)} value
+ * @param {StateSymbol[]} [symbols]
+ * @returns {(element: Element) => Element}
+ */
 export const setProperty = (key, value, symbols) => (element) => {
   if (symbols) {
     if (typeof value !== "function") {
       throw new Error(
-        `'value' must be a function when 'symbols' are provided.`
+        `'value' must be a function when 'symbols' are provided. Received ${typeof value}.`
       );
     }
     element[key] = value();
     symbols.forEach((symbol) => {
-      const { dependents } = getStateBySymbol(symbol);
+      const { dependents } = getStateObjectBySymbol(symbol);
       const dependent = () => {
         const value_ = value();
         if (element[key] !== value_) {
@@ -154,24 +234,29 @@ export const setProperty = (key, value, symbols) => (element) => {
       });
     });
   } else {
-    if (typeof value === "function") {
-      throw new Error(`'symbols' must be provided when 'value' is a function.`);
-    }
-    element[key] = value;
+    const value_ = typeof value === "function" ? value() : value;
+    element[key] = value_;
   }
   return element;
 };
 
+/**
+ *
+ * @param {string} key
+ * @param {string | (() => string)} value
+ * @param {StateSymbol[]} [symbols]
+ * @returns {(element: Element) => Element}
+ */
 export const setAttribute = (key, value, symbols) => (element) => {
   if (symbols) {
     if (typeof value !== "function") {
       throw new Error(
-        `'value' must be a function when 'symbols' are provided.`
+        `'value' must be a function when 'symbols' are provided. Received ${typeof value}.`
       );
     }
     element.setAttribute(key, value());
     symbols.forEach((symbol) => {
-      const { dependents } = getStateBySymbol(symbol);
+      const { dependents } = getStateObjectBySymbol(symbol);
       const dependent = () => {
         const value_ = value();
         if (element.getAttribute(key) !== value_) {
@@ -186,52 +271,78 @@ export const setAttribute = (key, value, symbols) => (element) => {
       });
     });
   } else {
-    if (typeof value === "function") {
-      throw new Error(`'symbols' must be provided when 'value' is a function.`);
-    }
-    element.setAttribute(key, value);
+    const value_ = typeof value === "function" ? value() : value;
+    element.setAttribute(key, value_);
   }
   return element;
 };
 
-export const addEventListener = (type, listener) => (element) => {
-  element.addEventListener(type, listener);
+/**
+ *
+ * @param {string} eventType
+ * @param {(event: Event) => void} listener
+ * @param {boolean | AddEventListenerOptions} [options]
+ * @returns {(element: Element) => Element}
+ */
+export const addEventListener = (eventType, listener, options) => (element) => {
+  element.addEventListener(eventType, listener, options);
   element.addEventListener(
     "unmount",
-    () => element.removeEventListener(type, listener),
+    () => element.removeEventListener(eventType, listener),
     { once: true }
   );
   return element;
 };
 
+/**
+ * @private
+ * @param {Element} element
+ * @returns {void}
+ */
 function dispatchUnmountEvent(element) {
   const event = new CustomEvent("unmount");
   element.dispatchEvent(event);
 }
 
+/**
+ *
+ * @param {() => void} callback
+ * @returns {(element: Element) => Element}
+ */
 export const onMount = (callback) => (element) => {
   element.addEventListener("mount", callback, { once: true });
   callback();
   return element;
 };
 
+/**
+ *
+ * @param {() => void} callback
+ * @returns {(element: Element) => Element}
+ */
 export const onUnmount = (callback) => (element) => {
   element.addEventListener("unmount", callback, { once: true });
   return element;
 };
 
+/**
+ *
+ * @param {Element | Text | (() => Element) | (() => Text)} child
+ * @param {StateSymbol[]} [symbols]
+ * @returns {(element: Element) => Element}
+ */
 export const addChild = (child, symbols) => (element) => {
   if (symbols) {
     if (typeof child !== "function") {
       throw new Error(
-        `'child' must be a function when 'symbols' are provided.`
+        `'child' must be a function when 'symbols' are provided. Received ${typeof child}.`
       );
     }
     let child_ = child();
     element.appendChild(child_);
 
     symbols.forEach((symbol) => {
-      const { dependents } = getStateBySymbol(symbol);
+      const { dependents } = getStateObjectBySymbol(symbol);
       let prevChild = child_;
 
       const dependent = () => {
@@ -253,25 +364,20 @@ export const addChild = (child, symbols) => (element) => {
       );
     });
   } else {
-    if (typeof child === "function") {
-      throw new Error("'symbols' must be provided when 'child' is a function.");
-    }
-    element.appendChild(child);
+    const child_ = typeof child === "function" ? child() : child;
+    element.appendChild(child_);
   }
   return element;
 };
 
+/**
+ *
+ * @param {(() => Element)} child
+ * @param {(...states: StateValue[]) => boolean} condition
+ * @param {StateSymbol[]} symbols
+ * @returns
+ */
 export const addGuardedChild = (child, condition, symbols) => (element) => {
-  if (typeof child !== "function") {
-    throw new Error(`'child' must be a function.`);
-  }
-  if (typeof condition !== "function") {
-    throw new Error(`'condition' must be a function.`);
-  }
-  if (!Array.isArray(symbols)) {
-    throw new Error(`'symbols' must be an array.`);
-  }
-
   let childElement;
   let prevConditionResult;
 
@@ -303,7 +409,7 @@ export const addGuardedChild = (child, condition, symbols) => (element) => {
   };
 
   symbols.forEach((symbol) => {
-    const { dependents } = getStateBySymbol(symbol);
+    const { dependents } = getStateObjectBySymbol(symbol);
     dependents.add(updateChild);
 
     element.addEventListener(
@@ -320,34 +426,31 @@ export const addGuardedChild = (child, condition, symbols) => (element) => {
   return element;
 };
 
+/**
+ *
+ * @param {StateSymbol} symbol
+ * @param {(arg: StateValue) => [string, Element]} generateKeyNodePair
+ * @param {StateSymbol[]} symbols
+ * @returns {(element: Element) => Element}
+ */
 export const addKeyedChildren =
-  (childKey, createChildFunc, symbols) => (element) => {
-    if (typeof childKey !== "symbol") {
-      throw new Error(`'childKey' must be a symbol.`);
-    }
-    if (typeof createChildFunc !== "function") {
-      throw new Error(`'createChildFunc' must be a function.`);
-    }
-    if (!Array.isArray(symbols)) {
-      throw new Error(`'symbols' must be an array.`);
-    }
-
+  (symbol, generateKeyNodePair, symbols) => (element) => {
     const childrenMap = new Map();
     const startIndex = element.childNodes.length;
     const cache = new WeakMap();
 
-    const memoizedCreateChildFunc = (arg) => {
+    const memoizedGenerateKeyNodePair = (arg) => {
       if (cache.has(arg)) {
         return cache.get(arg);
       } else {
-        const result = createChildFunc(arg);
+        const result = generateKeyNodePair(arg);
         cache.set(arg, result);
         return result;
       }
     };
 
     const updateChildren = () => {
-      const children = getState(childKey).map(memoizedCreateChildFunc);
+      const children = getState(symbol).map(memoizedGenerateKeyNodePair);
       const newKeys = new Set(children.map(([key]) => key));
 
       for (let [key, childElement] of childrenMap) {
@@ -379,7 +482,7 @@ export const addKeyedChildren =
     };
 
     symbols.forEach((symbol) => {
-      const { dependents } = getStateBySymbol(symbol);
+      const { dependents } = getStateObjectBySymbol(symbol);
       dependents.add(updateChildren);
 
       element.addEventListener(
@@ -396,6 +499,11 @@ export const addKeyedChildren =
     return element;
   };
 
+/**
+ *
+ * @param {any} label
+ * @returns {(element: Element) => Element}
+ */
 export const trace = (label) => (element) => {
   console.log(label, element);
   return element;

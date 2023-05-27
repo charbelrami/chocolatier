@@ -76,7 +76,7 @@ createElement(
 
 ### createText
 
-`createText(text, symbols)` creates a new text node with the given text, which can be a static string or a function that returns a string. When the text is a function, symbols should be provided to track the dependent states. The text node is updated whenever any of the dependent states change.
+`createText(text, symbols)` creates a new text node with the given text, which can be a static string, a static number, a function that returns a number, or a function that returns a string. When the text is a function, symbols should be provided to track the dependent states. The text node is updated whenever any of the dependent states change.
 
 ```js
 createElement(
@@ -166,7 +166,7 @@ createElement(
 
 ### addKeyedChildren
 
-`addKeyedChildren(childKey, createChildFunc, symbols)` adds a list of children to a DOM element, where each child is identified by a unique key. Symbols must be provided to track the dependent states. The children are updated whenever any of the dependent states change.
+`addKeyedChildren(symbol, generateKeyNodePair, symbols)` adds a list of children to a DOM element, where each child is identified by a unique key. Symbols must be provided to track the dependent states. The children are updated whenever any of the dependent states change.
 
 ```js
 const list = createState([

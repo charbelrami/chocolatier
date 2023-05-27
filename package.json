@@ -15,14 +15,16 @@
       "require": "./dist/index.umd.js"
     }
   },
+  "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && tsc",
     "preview": "vite preview",
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "prettier": "^2.8.8",
-    "vite": "^4.3.5"
+    "typescript": "^5.0.4",
+    "vite": "^4.3.9"
   }
 }
