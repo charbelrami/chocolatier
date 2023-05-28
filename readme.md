@@ -2,7 +2,15 @@
 
 ## Introduction
 
-**chocolatier** is a lightweight (less than 2kB), reactive JavaScript library for intuitive and efficient state management and DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to provide precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability. Here's how it works:
+**chocolatier** is a lightweight (less than 2kB), reactive JavaScript library for intuitive state management and effective DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to offer precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability.
+
+chocolatier offers a refreshing level of predictability by not adopting the "component" concept in a traditional sense as seen in component-based frameworks. Instead, it allows for the composition of UI using simple functions that return DOM elements. This avoids unexpected re-renders, function calls, or side effects that are common pitfalls in other libraries.
+
+With chocolatier, states and effects are not restricted to components; they can be defined anywhere in your code. This offers flexibility in sharing states and effects, and makes it easy to reason about the state of the DOM at any given moment.
+
+A standout feature of chocolatier is that `setState` operates synchronously. This ensures that updates to the state happen immediately and in the order they are called, eliminating the risk of state inconsistency.
+
+Here's how chocolatier works:
 
 ## State Management
 
@@ -60,7 +68,7 @@ createGuardedEffect(
 
 ### createElement
 
-`createElement(type, ...modifiers)` creates a new HTML element of the given type and applies the provided modifiers to it.
+`createElement(elementType, ...modifiers)` creates a new HTML element of the given type and applies the provided modifiers to it.
 
 ```js
 createElement(
@@ -72,7 +80,7 @@ createElement(
 
 ### createSvgElement
 
-`createSvgElement(type, ...modifiers)` creates a new SVG element of the given type and applies the provided modifiers to it.
+`createSvgElement(elementType, ...modifiers)` creates a new SVG element of the given type and applies the provided modifiers to it.
 
 ### createText
 
@@ -131,7 +139,7 @@ createElement(
 
 ### addEventListener
 
-`addEventListener(type, listener)` adds an event listener to a DOM element.
+`addEventListener(eventType, listener, options)` adds an event listener to a DOM element.
 
 ```js
 createElement(

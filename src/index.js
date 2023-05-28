@@ -10,6 +10,8 @@
  * @typedef {Symbol} StateSymbol
  */
 
+// const states = new WeakMap(); // https://github.com/tc39/proposal-symbols-as-weakmap-keys
+
 /** @type {Map<StateSymbol, StateObject>} */
 const states = new Map();
 
