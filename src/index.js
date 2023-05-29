@@ -402,7 +402,9 @@ export const addGuardedChild = (child, condition, symbols) => (element) => {
       } else {
         if (childElement) {
           dispatchUnmountEvent(childElement);
-          element.removeChild(childElement);
+          if (element.contains(childElement)) {
+            element.removeChild(childElement);
+          }
           childElement = null;
         }
       }
