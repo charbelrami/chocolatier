@@ -1,14 +1,33 @@
 # chocolatier
 
+```js
+const helloWorld = createElement("p", addChild(createText("Hello, world!")));
+
+const root = document.getElementById("root");
+root.appendChild(helloWorld);
+```
+
+```js
+const count = createState(0);
+
+const counter = createElement(
+  "button",
+  addEventListener("click", () => setState(count, getState(count) + 1)),
+  addChild(createText(() => getState(count), [count]))
+);
+
+const root = document.getElementById("root");
+root.appendChild(counter);
+```
+
 ## Introduction
 
-**chocolatier** is a lightweight (less than 2kB), reactive JavaScript library for intuitive state management and effective DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to offer precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability.
+**chocolatier** is a lightweight (under 2kB), reactive JavaScript library for pragmatic state management and effective DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to offer precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability.
 
-chocolatier offers a refreshing level of predictability by not adopting the "component" concept in a traditional sense as seen in component-based frameworks. Instead, it allows for the composition of UI using simple functions that return DOM elements. This avoids unexpected re-renders, function calls, or side effects that are common pitfalls in other libraries.
+chocolatier offers a refreshing level of predictability by not adopting the "component" concept in a traditional sense, as seen in component-based frameworks. Instead, it allows for the composition of UI by assigning DOM elements to variables, and using plain functions that return DOM elements. This avoids unexpected re-renders, function calls, or side effects that are common pitfalls in other libraries.
+Additionally, defining states and effects is not restricted to components. For a practical example of UI composition using chocolatier, refer to [Composing UI](#composing-ui).
 
-With chocolatier, states and effects are not restricted to components; they can be defined anywhere in your code. This offers flexibility in sharing states and effects, and makes it easy to reason about the state of the DOM at any given moment.
-
-A standout feature of chocolatier is that `setState` operates synchronously. This ensures that updates to the state happen immediately and in the order they are called, eliminating the risk of state inconsistency.
+Another noteworthy feature of chocolatier is that state updates are synchronous. This ensures that they happen immediately and in the order they are called, mitigating the risk of state inconsistency.
 
 Here's how chocolatier works:
 
@@ -219,4 +238,127 @@ createElement(
 
 ## Examples
 
-[CodeSandbox](https://codesandbox.io/s/chocolatier-examples-1fgdh2?file=/src/index.js)
+[See examples on CodeSandbox](https://codesandbox.io/s/chocolatier-examples-1fgdh2?file=/src/index.js)
+
+## Composing UI
+
+```js
+const users = createState([]);
+const selectedUserId = createState();
+const posts = createState([]);
+const selectedPostId = createState();
+const comments = createState([]);
+
+createEffect(() => {
+  fetch("https://jsonplaceholder.typicode.com/users")
+    .then((response) => response.json())
+    .then((data) => setState(users, data));
+});
+
+createGuardedEffect(
+  () => {
+    setState(posts, []);
+    fetch(
+      `https://jsonplaceholder.typicode.com/users/${getState(
+        selectedUserId
+      )}/posts`
+    )
+      .then((response) => response.json())
+      .then((data) => setState(posts, data));
+  },
+  () => getState(selectedUserId) !== undefined,
+  [selectedUserId]
+);
+
+createGuardedEffect(
+  () => {
+    setState(comments, []);
+    fetch(
+      `https://jsonplaceholder.typicode.com/posts/${getState(
+        selectedPostId
+      )}/comments`
+    )
+      .then((response) => response.json())
+      .then((data) => setState(comments, data));
+  },
+  () => getState(selectedPostId) !== undefined,
+  [selectedPostId]
+);
+
+const selectLabel = createElement(
+  "label",
+  setAttribute("for", "users"),
+  addChild(createText("Select a user"))
+);
+
+const selectInput = createElement(
+  "select",
+  setProperty("id", "users"),
+  setProperty("value", () => getState(selectedUserId), [selectedUserId]),
+  addEventListener("change", (e) => setState(selectedUserId, e.target.value)),
+  addKeyedChildren(users, (user) => [user.id, selectOption(user)], [users])
+);
+
+const selectOption = (user) =>
+  createElement(
+    "option",
+    setProperty("value", user.id),
+    addChild(createText(user.name))
+  );
+
+const viewCommentButton = (post) =>
+  createElement(
+    "button",
+    addEventListener("click", () => setState(selectedPostId, post.id)),
+    addChild(createText("View comments"))
+  );
+
+const commentItem = (comment) =>
+  createElement("li", addChild(createText(comment.body)));
+
+const commentList = addKeyedChildren(
+  comments,
+  (comment) => [comment.id, commentItem(comment)],
+  [comments]
+);
+
+const postItem = (post) =>
+  createElement(
+    "li",
+    addChild(createText(post.title)),
+    addChild(viewCommentButton(post)),
+    addGuardedChild(
+      () =>
+        createElement(
+          "section",
+          addChild(createElement("h3", addChild(createText("Comments")))),
+          commentList
+        ),
+      () =>
+        getState(comments).length > 0 && getState(selectedPostId) === post.id,
+      [comments, selectedPostId]
+    )
+  );
+
+const postList = createElement(
+  "ul",
+  addKeyedChildren(posts, (post) => [post.id, postItem(post)], [posts])
+);
+
+const userPosts = createElement(
+  "section",
+  addChild(createElement("h2", addChild(createText("User Posts")))),
+  addChild(selectLabel),
+  addChild(selectInput),
+  addGuardedChild(
+    () => postList,
+    () => getState(posts).length > 0,
+    [posts]
+  )
+);
+
+const root = document.getElementById("root");
+root.appendChild(userPosts);
+```
+
+[See Composing UI on CodeSandbox](https://codesandbox.io/s/chocolatier-ui-composition-iubtmc?file=/src/index.js)
