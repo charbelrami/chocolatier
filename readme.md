@@ -20,6 +20,20 @@ const root = document.getElementById("root");
 root.appendChild(counter);
 ```
 
+## Installation
+
+### npm
+
+```sh
+npm install chocolatier
+```
+
+### CDN
+
+```html
+<script src="https://unpkg.com/chocolatier/dist/index.umd.js"></script>
+```
+
 ## Introduction
 
 **chocolatier** is a lightweight (under 2kB), reactive JavaScript library for pragmatic state management and effective DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to offer precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability.
@@ -28,6 +42,8 @@ chocolatier offers a refreshing level of predictability by not adopting the "com
 Additionally, defining states and effects is not restricted to components. For a practical example of UI composition using chocolatier, refer to [Composing UI](#composing-ui).
 
 Another noteworthy feature of chocolatier is that state updates are synchronous. This ensures that they happen immediately and in the order they are called, mitigating the risk of state inconsistency.
+
+Unlike many modern libraries that require transpiling and bundling processes, chocolatier is written in plain JavaScript and can be included directly in a web page using a script tag. For TypeScript users, types are provided out of the box through [JSDoc comments](https://www.typescriptlang.org/docs/handbook/jsdoc-supported-types.html).
 
 Here's how chocolatier works:
 
@@ -291,6 +307,13 @@ const selectLabel = createElement(
   addChild(createText("Select a user"))
 );
 
+const selectOption = (user) =>
+  createElement(
+    "option",
+    setProperty("value", user.id),
+    addChild(createText(user.name))
+  );
+
 const selectInput = createElement(
   "select",
   setProperty("id", "users"),
@@ -298,13 +321,6 @@ const selectInput = createElement(
   addEventListener("change", (e) => setState(selectedUserId, e.target.value)),
   addKeyedChildren(users, (user) => [user.id, selectOption(user)], [users])
 );
-
-const selectOption = (user) =>
-  createElement(
-    "option",
-    setProperty("value", user.id),
-    addChild(createText(user.name))
-  );
 
 const viewCommentButton = (post) =>
   createElement(
