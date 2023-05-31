@@ -122,6 +122,10 @@ createElement(
 `createText(text, symbols)` creates a new text node with the given text, which can be a static string, a static number, a function that returns a number, or a function that returns a string. When the text is a function, symbols should be provided to track the dependent states. The text node is updated whenever any of the dependent states change.
 
 ```js
+createElement("p", addChild(createText("Hello, world!")));
+```
+
+```js
 createElement(
   "button",
   addEventListener("click", () => setState(count, getState(count) + 1)),
@@ -146,6 +150,10 @@ createElement(
 `setProperty(key, value, symbols)` sets the property of a DOM element to the given value. The value can be a static value or a function that returns a value. When the value is a function, symbols should be provided to track the dependent states. The value of the property is updated whenever any of the dependent states change.
 
 ```js
+createElement("input", setProperty("id", "name"));
+```
+
+```js
 createElement(
   "button",
   addEventListener("click", () => setState(count, getState(count) - 1)),
@@ -160,15 +168,9 @@ createElement(
 
 ```js
 createElement(
-  "p",
-  addChild(
-    createElement(
-      "label",
-      setAttribute("for", "name"),
-      addChild(createText("Name"))
-    )
-  ),
-  addChild(createElement("input", setProperty("id", "name")))
+  "label",
+  setAttribute("for", "name"),
+  addChild(createText("Name"))
 );
 ```
 
@@ -255,6 +257,39 @@ createElement(
 ## Examples
 
 [See examples on CodeSandbox](https://codesandbox.io/s/chocolatier-examples-1fgdh2?file=/src/index.js)
+
+## Styling
+
+### CSS class
+
+```css
+.btn {
+  border-radius: 0.25rem;
+  border-style: none;
+  padding: 0.5rem 1rem;
+}
+```
+
+```js
+createElement(
+  "button",
+  setAttribute("class", "btn"),
+  addChild(createText("Button"))
+);
+```
+
+### Tailwind CSS
+
+```js
+createElement(
+  "button",
+  setAttribute(
+    "class",
+    "rounded border-none bg-indigo-700 px-4 py-2 font-sans text-white"
+  ),
+  addChild(createText("Button"))
+);
+```
 
 ## Composing UI
 

@@ -18,6 +18,7 @@ import {
   setProperty,
   setState,
 } from "../src";
+import "./index.css";
 
 const count = createState(0);
 
@@ -174,8 +175,31 @@ const elementLifecycle = createElement(
   )
 );
 
+const cssClassButton = createElement(
+  "button",
+  setAttribute("class", "btn"),
+  addChild(createText("CSS class button"))
+);
+
+const tailwindButton = createElement(
+  "button",
+  setAttribute(
+    "class",
+    "rounded border-none bg-indigo-700 px-4 py-2 font-sans text-white"
+  ),
+  addChild(createText("Tailwind button"))
+);
+
+const styling = createElement(
+  "section",
+  addChild(createElement("h2", addChild(createText("Styling")))),
+  addChild(cssClassButton),
+  addChild(tailwindButton)
+);
+
 const root = document.getElementById("root");
 root.appendChild(counter);
 root.appendChild(range);
 root.appendChild(userPosts);
 root.appendChild(elementLifecycle);
+root.appendChild(styling);
