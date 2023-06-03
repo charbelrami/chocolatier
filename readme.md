@@ -20,6 +20,40 @@ const root = document.getElementById("root");
 root.appendChild(counter);
 ```
 
+## Table of Contents
+
+- [chocolatier](#chocolatier)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+    - [npm](#npm)
+    - [CDN](#cdn)
+  - [Introduction](#introduction)
+  - [State Management](#state-management)
+    - [createState](#createstate)
+    - [getState](#getstate)
+    - [setState](#setstate)
+  - [Effects](#effects)
+    - [createEffect](#createeffect)
+    - [createGuardedEffect](#createguardedeffect)
+  - [DOM Element Creation and Manipulation](#dom-element-creation-and-manipulation)
+    - [createElement](#createelement)
+    - [createSvgElement](#createsvgelement)
+    - [createText](#createtext)
+    - [createRef](#createref)
+    - [setProperty](#setproperty)
+    - [setAttribute](#setattribute)
+    - [addEventListener](#addeventlistener)
+    - [addChild](#addchild)
+    - [addGuardedChild](#addguardedchild)
+    - [addKeyedChildren](#addkeyedchildren)
+    - [onMount](#onmount)
+    - [onUnmount](#onunmount)
+  - [Styling](#styling)
+    - [CSS class](#css-class)
+    - [Tailwind CSS](#tailwind-css)
+  - [Composing UI](#composing-ui)
+  - [Examples](#examples)
+
 ## Installation
 
 ### npm
@@ -254,10 +288,6 @@ createElement(
 );
 ```
 
-## Examples
-
-[See examples on CodeSandbox](https://codesandbox.io/s/chocolatier-examples-1fgdh2?file=/src/index.js)
-
 ## Styling
 
 ### CSS class
@@ -413,3 +443,10 @@ root.appendChild(userPosts);
 ```
 
 [See Composing UI on CodeSandbox](https://codesandbox.io/s/chocolatier-ui-composition-iubtmc?file=/src/index.js)
+
+## Examples
+
+- [See counter on CodeSandbox](https://codesandbox.io/s/chocolatier-counter-izr5q9?file=/src/index.js)
+- [See range on CodeSandbox](https://codesandbox.io/s/chocolatier-range-hwii4h?file=/src/index.js)
+- [See user posts on CodeSandbox](https://codesandbox.io/s/chocolatier-user-posts-s6qypi?file=/src/index.js)
+- [See element lifecycle on CodeSandbox](https://codesandbox.io/s/chocolatier-lifecycle-y61qig?file=/src/index.js)
