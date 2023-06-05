@@ -1,5 +1,7 @@
 # chocolatier
 
+## Overview
+
 ```js
 const helloWorld = createElement("p", addChild(createText("Hello, world!")));
 
@@ -20,9 +22,25 @@ const root = document.getElementById("root");
 root.appendChild(counter);
 ```
 
+### Pipe Operator
+
+```js
+const count = createState(0);
+
+const counter =
+  createElement("button")
+  |> addEventListener("click", () => setState(count, getState(count) + 1))(%)
+  |> addChild(createText(() => getState(count), [count]))(%);
+
+const root = document.getElementById("root");
+root.appendChild(counter);
+```
+
 ## Table of Contents
 
 - [chocolatier](#chocolatier)
+  - [Overview](#overview)
+    - [Pipe Operator](#pipe-operator)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
     - [npm](#npm)
@@ -450,3 +468,4 @@ root.appendChild(userPosts);
 - [See range on CodeSandbox](https://codesandbox.io/s/chocolatier-range-hwii4h?file=/src/index.js)
 - [See user posts on CodeSandbox](https://codesandbox.io/s/chocolatier-user-posts-s6qypi?file=/src/index.js)
 - [See element lifecycle on CodeSandbox](https://codesandbox.io/s/chocolatier-lifecycle-y61qig?file=/src/index.js)
+- [See pipe operator on CodeSandbox](https://codesandbox.io/s/chocolatier-pipeline-operator-b1ilio?file=/src/index.js)
