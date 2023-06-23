@@ -397,7 +397,11 @@ const selectInput = createElement(
   setProperty("id", "users"),
   setProperty("value", () => getState(selectedUserId), [selectedUserId]),
   addEventListener("change", (e) => setState(selectedUserId, e.target.value)),
-  addKeyedChildren(users, (user) => [user.id, selectOption(user)], [users])
+  addKeyedChildren(
+    (user) => selectOption(user),
+    (user) => user.id,
+    users
+  )
 );
 
 const viewCommentButton = (post) =>
@@ -411,9 +415,9 @@ const commentItem = (comment) =>
   createElement("li", addChild(createText(comment.body)));
 
 const commentList = addKeyedChildren(
-  comments,
-  (comment) => [comment.id, commentItem(comment)],
-  [comments]
+  (comment) => commentItem(comment),
+  (comment) => comment.id,
+  comments
 );
 
 const postItem = (post) =>
@@ -436,7 +440,11 @@ const postItem = (post) =>
 
 const postList = createElement(
   "ul",
-  addKeyedChildren(posts, (post) => [post.id, postItem(post)], [posts])
+  addKeyedChildren(
+    (post) => postItem(post),
+    (post) => post.id,
+    posts
+  )
 );
 
 const userPosts = createElement(

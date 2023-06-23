@@ -278,12 +278,18 @@ const todoList = createElement(
   )
 );
 
+const todoSection = createElement(
+  "section",
+  addChild(createElement("h2", addChild(createText("Todo list")))),
+  addChild(todoForm),
+  addChild(markAllAsCompleted),
+  addChild(todoList)
+);
+
 const root = document.getElementById("root");
 root.appendChild(counter);
 root.appendChild(range);
 root.appendChild(userPosts);
 root.appendChild(elementLifecycle);
 root.appendChild(styling);
-root.appendChild(todoForm);
-root.appendChild(markAllAsCompleted);
-root.appendChild(todoList);
+root.appendChild(todoSection);
