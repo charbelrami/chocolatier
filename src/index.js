@@ -1,3 +1,5 @@
+import { diff, applyDiff } from "./diff.js";
+
 /**
  * @typedef {any} StateValue
  */
@@ -432,71 +434,34 @@ export const addGuardedChild = (child, condition, symbols) => (element) => {
 
 /**
  *
+ * @param {(arg: StateValue) => Element} createItem
+ * @param {(arg: object) => string} getKey
  * @param {StateSymbol} symbol
- * @param {(arg: StateValue) => [string, Element]} generateKeyNodePair
- * @param {StateSymbol[]} symbols
  * @returns {(element: Element) => Element}
  */
 export const addKeyedChildren =
-  (symbol, generateKeyNodePair, symbols) => (element) => {
-    const childrenMap = new Map();
+  (createItem, getKey = (item) => item.id, symbol) =>
+  (element) => { 
     const startIndex = element.childNodes.length;
-    const cache = new WeakMap();
-
-    const memoizedGenerateKeyNodePair = (arg) => {
-      if (cache.has(arg)) {
-        return cache.get(arg);
-      } else {
-        const result = generateKeyNodePair(arg);
-        cache.set(arg, result);
-        return result;
-      }
-    };
+    let prevItems = [];
 
     const updateChildren = () => {
-      const children = getState(symbol).map(memoizedGenerateKeyNodePair);
-      const newKeys = new Set(children.map(([key]) => key));
-
-      for (let [key, childElement] of childrenMap) {
-        if (!newKeys.has(key)) {
-          dispatchUnmountEvent(childElement);
-          element.removeChild(childElement);
-          childrenMap.delete(key);
-        }
-      }
-
-      let index = startIndex;
-      for (let [key, newChild] of children) {
-        let childElement = childrenMap.get(key);
-        if (!childElement) {
-          childElement = newChild;
-          element.insertBefore(childElement, element.childNodes[index]);
-          childrenMap.set(key, childElement);
-        } else {
-          if (!newChild.isEqualNode(childElement)) {
-            element.replaceChild(newChild, childElement);
-            childrenMap.set(key, newChild);
-          }
-          if (element.childNodes[index] !== childElement) {
-            element.insertBefore(childElement, element.childNodes[index]);
-          }
-        }
-        index++;
-      }
+      const items = getState(symbol);
+      const actions = diff(prevItems, items, getKey);
+      applyDiff(element, actions, createItem, dispatchUnmountEvent, startIndex);
+      prevItems = items;
     };
 
-    symbols.forEach((symbol) => {
-      const { dependents } = getStateObjectBySymbol(symbol);
-      dependents.add(updateChildren);
+    const { dependents } = getStateObjectBySymbol(symbol);
+    dependents.add(updateChildren);
 
-      element.addEventListener(
-        "unmount",
-        () => {
-          dependents.delete(updateChildren);
-        },
-        { once: true }
-      );
-    });
+    element.addEventListener(
+      "unmount",
+      () => {
+        dependents.delete(updateChildren);
+      },
+      { once: true }
+    );
 
     updateChildren();
 

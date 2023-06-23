@@ -1,47 +1,11 @@
 # chocolatier
 
-## Overview
-
-```js
-const helloWorld = createElement("p", addChild(createText("Hello, world!")));
-
-const root = document.getElementById("root");
-root.appendChild(helloWorld);
-```
-
-```js
-const count = createState(0);
-
-const counter = createElement(
-  "button",
-  addEventListener("click", () => setState(count, getState(count) + 1)),
-  addChild(createText(() => getState(count), [count]))
-);
-
-const root = document.getElementById("root");
-root.appendChild(counter);
-```
-
-### Pipe Operator
-
-```js
-const count = createState(0);
-
-const counter =
-  createElement("button")
-  |> addEventListener("click", () => setState(count, getState(count) + 1))(%)
-  |> addChild(createText(() => getState(count), [count]))(%);
-
-const root = document.getElementById("root");
-root.appendChild(counter);
-```
-
 ## Table of Contents
 
 - [chocolatier](#chocolatier)
+  - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
     - [Pipe Operator](#pipe-operator)
-  - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
     - [npm](#npm)
     - [CDN](#cdn)
@@ -72,6 +36,37 @@ root.appendChild(counter);
   - [Composing UI](#composing-ui)
   - [Examples](#examples)
 
+## Overview
+
+```js
+const helloWorld = createElement("p", addChild(createText("Hello, world!")));
+```
+
+```js
+const count = createState(0);
+
+const counter = createElement(
+  "button",
+  addEventListener("click", () => setState(count, getState(count) + 1)),
+  addChild(createText(() => getState(count), [count]))
+);
+```
+
+[See counter on CodeSandbox](https://codesandbox.io/s/chocolatier-counter-izr5q9?file=/src/index.js)
+
+### Pipe Operator
+
+```js
+const count = createState(0);
+
+const counter =
+  createElement("button")
+  |> addEventListener("click", () => setState(count, getState(count) + 1))(%)
+  |> addChild(createText(() => getState(count), [count]))(%);
+```
+
+[See pipe operator on CodeSandbox](https://codesandbox.io/s/chocolatier-pipeline-operator-b1ilio?file=/src/index.js)
+
 ## Installation
 
 ### npm
@@ -88,7 +83,7 @@ npm install chocolatier
 
 ## Introduction
 
-**chocolatier** is a lightweight (under 2kB), reactive JavaScript library for pragmatic state management and effective DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to offer precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability.
+**chocolatier** is a lightweight, reactive JavaScript library for pragmatic state management and effective DOM manipulation. It uses a powerful combination of Symbols, WeakMaps, and Sets to offer precise control over even the most granular aspects of the DOM. It also handles dependencies and side effects in a transparent and predictable manner, improving code readability and maintainability.
 
 chocolatier offers a refreshing level of predictability by not adopting the "component" concept in a traditional sense, as seen in component-based frameworks. Instead, it allows for the composition of UI by assigning DOM elements to variables, and using plain functions that return DOM elements. This avoids unexpected re-renders, function calls, or side effects that are common pitfalls in other libraries.
 Additionally, defining states and effects is not restricted to components. For a practical example of UI composition using chocolatier, refer to [Composing UI](#composing-ui).
@@ -263,7 +258,7 @@ createElement(
 
 ### addKeyedChildren
 
-`addKeyedChildren(symbol, generateKeyNodePair, symbols)` adds a list of children to a DOM element, where each child is identified by a unique key. Symbols must be provided to track the dependent states. The children are updated whenever any of the dependent states change.
+`addKeyedChildren(createItem, getKey, symbol)` adds a list of children to a DOM element, where each child is identified by a unique key.
 
 ```js
 const list = createState([
@@ -275,9 +270,9 @@ const list = createState([
 createElement(
   "ul",
   addKeyedChildren(
-    list,
-    (item) => [item.id, createElement("li", addChild(createText(item.text)))],
-    [list]
+    (item) => createElement("li", addChild(createText(item.text))),
+    (item) => item.id,
+    list
   )
 );
 ```
@@ -465,7 +460,8 @@ root.appendChild(userPosts);
 ## Examples
 
 - [See counter on CodeSandbox](https://codesandbox.io/s/chocolatier-counter-izr5q9?file=/src/index.js)
+- [See pipe operator on CodeSandbox](https://codesandbox.io/s/chocolatier-pipeline-operator-b1ilio?file=/src/index.js)
 - [See range on CodeSandbox](https://codesandbox.io/s/chocolatier-range-hwii4h?file=/src/index.js)
 - [See user posts on CodeSandbox](https://codesandbox.io/s/chocolatier-user-posts-s6qypi?file=/src/index.js)
 - [See element lifecycle on CodeSandbox](https://codesandbox.io/s/chocolatier-lifecycle-y61qig?file=/src/index.js)
-- [See pipe operator on CodeSandbox](https://codesandbox.io/s/chocolatier-pipeline-operator-b1ilio?file=/src/index.js)
+- [See Composing UI on CodeSandbox](https://codesandbox.io/s/chocolatier-ui-composition-iubtmc?file=/src/index.js)

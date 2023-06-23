@@ -109,16 +109,14 @@ const userPosts = createElement(
         setState(selectedUserId, e.target.value)
       ),
       addKeyedChildren(
-        users,
-        (user) => [
-          user.id,
+        (user) =>
           createElement(
             "option",
             setProperty("value", user.id),
             addChild(createText(user.name))
           ),
-        ],
-        [users]
+        (user) => user.id,
+        users
       )
     )
   ),
@@ -127,12 +125,9 @@ const userPosts = createElement(
       createElement(
         "ul",
         addKeyedChildren(
-          posts,
-          (post) => [
-            post.id,
-            createElement("li", addChild(createText(post.title))),
-          ],
-          [posts]
+          (post) => createElement("li", addChild(createText(post.title))),
+          (post) => post.id,
+          posts
         )
       ),
     () => getState(posts).length > 0,
@@ -197,9 +192,98 @@ const styling = createElement(
   addChild(tailwindButton)
 );
 
+const generateId = (() => {
+  let id = 0;
+  return () => String(id++);
+})();
+
+const todos = createState([]);
+const todo = createState("");
+
+const todoForm = createElement(
+  "form",
+  addEventListener("submit", (e) => {
+    e.preventDefault();
+    setState(todos, [
+      { id: generateId(), label: getState(todo), completed: false },
+      ...getState(todos),
+    ]);
+  }),
+  addChild(
+    createElement(
+      "input",
+      setProperty("value", () => getState(todo), [todo]),
+      setAttribute("aria-label", "Todo"),
+      addEventListener("input", (e) => setState(todo, e.target.value))
+    )
+  ),
+  addChild(createElement("button", addChild(createText("Add"))))
+);
+
+const markAllAsCompleted = createElement(
+  "button",
+  addChild(createText("Mark all as completed")),
+  addEventListener("click", () =>
+    setState(
+      todos,
+      getState(todos).map((t) => ({ ...t, completed: true }))
+    )
+  )
+);
+
+const todoList = createElement(
+  "ul",
+  addKeyedChildren(
+    (todo) =>
+      createElement(
+        "li",
+        addChild(
+          createElement(
+            "label",
+            addChild(
+              createElement(
+                "input",
+                setProperty("checked", todo.completed),
+                setProperty("type", "checkbox"),
+                addEventListener("change", (e) => {
+                  setState(
+                    todos,
+                    getState(todos).map((t) =>
+                      t.id === todo.id
+                        ? { ...t, completed: e.target.checked }
+                        : t
+                    )
+                  );
+                })
+              )
+            ),
+            addChild(createText(todo.label))
+          )
+        ),
+        addChild(
+          createElement(
+            "button",
+            addChild(createText("Delete")),
+            addEventListener("click", () =>
+              setState(
+                todos,
+                getState(todos).filter((t) => t.id !== todo.id)
+              )
+            )
+          )
+        )
+      ),
+    (todo) => todo.id,
+    todos
+  )
+);
+
 const root = document.getElementById("root");
 root.appendChild(counter);
 root.appendChild(range);
 root.appendChild(userPosts);
 root.appendChild(elementLifecycle);
 root.appendChild(styling);
+root.appendChild(todoForm);
+root.appendChild(markAllAsCompleted);
+root.appendChild(todoList);

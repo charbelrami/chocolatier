@@ -8,6 +8,7 @@
     "emitDeclarationOnly": true,
     "declarationMap": true,
     "noEmitOnError": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "moduleResolution": "nodenext"
   }
 }
